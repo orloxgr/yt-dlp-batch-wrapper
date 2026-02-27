@@ -104,15 +104,16 @@ if "!IS_FILE!"=="1" (
     echo 1. Download Video as MP4 ^(default^)
     echo 2. Download Video as MKV
     echo 3. Download Audio as MP3
+    echo 4. Download Source Video ^(Native Format^)
 )
 
 set "CHOICE="
-set /p CHOICE="Select action (1/2/3): "
+set /p CHOICE="Select action (1/2/3/4): "
 if "!CHOICE!"=="" set "CHOICE=1"
 
-REM yt-dlp settings
+REM yt-dlp settings (Removed youtube:player_client=web to prevent 360p cap)
 set "JS=--js-runtimes deno"
-set "YTFIX=--extractor-args youtube:player_client=web --remote-components ejs:github --force-ipv4"
+set "YTFIX=--remote-components ejs:github --force-ipv4"
 
 REM Execution
 if "!IS_FILE!"=="1" (
@@ -121,9 +122,10 @@ if "!IS_FILE!"=="1" (
     if "!CHOICE!"=="2" ffmpeg -i "!TARGET!" -c copy "!BASENAME!.mp4"
     if "!CHOICE!"=="3" ffmpeg -i "!TARGET!" -c copy "!BASENAME!.mkv"
 ) else (
-    if "!CHOICE!"=="1" yt-dlp --progress --newline !JS! !YTFIX! -S ext:mp4:m4a --live-from-start "!TARGET!"
-    if "!CHOICE!"=="2" yt-dlp --progress --newline !JS! !YTFIX! --live-from-start "!TARGET!"
+    if "!CHOICE!"=="1" yt-dlp --progress --newline !JS! !YTFIX! -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --merge-output-format mp4 --live-from-start "!TARGET!"
+    if "!CHOICE!"=="2" yt-dlp --progress --newline !JS! !YTFIX! -f "bestvideo+bestaudio/best" --merge-output-format mkv --live-from-start "!TARGET!"
     if "!CHOICE!"=="3" yt-dlp --progress --newline !JS! !YTFIX! -x --audio-format mp3 --audio-quality 0 --live-from-start "!TARGET!"
+    if "!CHOICE!"=="4" yt-dlp --progress --newline !JS! !YTFIX! -f "bestvideo+bestaudio/best" --live-from-start "!TARGET!"
 )
 
 echo.
